@@ -9,6 +9,7 @@ import math
 import shutil
 import datetime
 import re
+import kurbeln
 import numpy as np
 import pandas as pd
 import folium
@@ -25,6 +26,9 @@ env = Environment(
     loader=FileSystemLoader("templates"),
     autoescape=select_autoescape()
 )
+
+def full_name(f):
+    return f['FirstName'] + ' ' + f['LastName']
 
 def pretty_duration(s):
     s = int(s)
@@ -51,14 +55,50 @@ shutil.copytree('templates/static', '_out/static', dirs_exist_ok=True)
 
 flight_data = json.load(open('_tmp/flights.json'))
 
-flights = {}
+# Group flights by id
+flights_by_id = { flight["IDFlight"]: flight for flight in flight_data['data']}
 
+# Group flights by date
+flights_by_date = {}
+for flight in flight_data['data']:
+    date = flight['FlightDate']
+    if date not in flights_by_date:
+        flights_by_date[date] = []
+    flights_by_date[date].append(flight)
+
+flights = {}
 # Group flights by pilot, read stats
 for flight in flight_data['data']:
     id = flight['IDFlight']
     pid = flight['FKPilot']
 
+    # add stats
+    print(f"Reading stats for {id}")
     flight['stats'] = json.load(open(f'_stats/{id}.stats.json'))
+
+    # add kurbeleien
+    flight['kurbeleien'] = []
+    for other_flight in flights_by_date[flight['FlightDate']]:
+        if other_flight['IDFlight'] == id:
+            continue
+        if flight['FlightEndTime'] < other_flight['FlightStartTime']:
+            continue
+        if other_flight['FlightEndTime'] < flight['FlightStartTime']:
+            continue 
+        other_id = other_flight['IDFlight']
+        stats_file1 = f"_stats/{id}-{other_id}.stats.json"
+        if os.path.exists(stats_file1):
+            data = json.load(open(stats_file1))
+            if data is not None:
+                data['other_flight'] = flights_by_id[other_id]
+                flight['kurbeleien'].append(data)
+        stats_file2 = f"_stats/{other_id}-{id}.stats.json"
+        if os.path.exists(stats_file2):
+            data = json.load(open(stats_file2))
+            if data is not None:
+                data = kurbeln.flip_stats(data)
+                data['other_flight'] = flights_by_id[other_id]
+                flight['kurbeleien'].append(data)
 
     if pid not in flights:
         flights[pid] = []
@@ -85,6 +125,10 @@ def finalize_stats(stats, covered):
     stats['prettyflighttime'] = pretty_duration(stats['flighttime'])
 
 def points_of_stats(stats):
+    if type(stats['kurbelpartner']) == list:
+        kurbelpartner = len(stats['kurbelpartner'])
+    else:
+        kurbelpartner = stats['kurbelpartner']
     points = {
         'schauiflights':   stats['schauiflights']   * 5,
         'lindenflights':   stats['lindenflights']   * 5,
@@ -92,9 +136,10 @@ def points_of_stats(stats):
         'hikes':           stats['hikes']           * 120,
         'fotos':           stats['fotos']           * 3,
         'sektoren':        stats['sektoren']        * 42,
-        'landepunkt1':     stats['landepunkt1']     * 100,
-        'landepunkt2':     stats['landepunkt2']     * 25,
-        'landepunkt3':     stats['landepunkt3']     * 5,
+        #'landepunkt1':     stats['landepunkt1']     * 100,
+        #'landepunkt2':     stats['landepunkt2']     * 25,
+        #'landepunkt3':     stats['landepunkt3']     * 5,
+        'kurbelpartner':   kurbelpartner            * 100,
         'drehueberschuss': stats['drehueberschuss'] * -1,
         'sonderwertung':   stats['sonderwertung']   * 400,
     }
@@ -108,7 +153,7 @@ sektor_pilots = {}
 sektor_flights = {}
 all_flights = []
 for pid, pflights in flights.items():
-    name = pflights[0]['FirstName'] + ' ' + pflights[0]['LastName']
+    name = full_name(pflights[0])
     covered = set()
 
     # stats
@@ -119,9 +164,10 @@ for pid, pflights in flights.items():
         'hikes': 0,
         'fotos': 0,
         'sektoren': 0,
-        'landepunkt1': 0,
-        'landepunkt2': 0,
-        'landepunkt3': 0,
+        #'landepunkt1': 0,
+        #'landepunkt2': 0,
+        #'landepunkt3': 0,
+        'kurbelpartner': list(),
         'drehrichtung': "",
         'drehueberschuss': 0,
         'left_turns': 0,
@@ -129,17 +175,17 @@ for pid, pflights in flights.items():
         'sonderwertung': 0,
     }
 
-    if pid == '10564':
-        stats['sonderwertung'] += 1
-    if pid == '14869':
-        stats['sonderwertung'] += 3
-    if pid == '12218':
-        stats['sonderwertung'] += 2
+    # if pid == '10564':
+    #     stats['sonderwertung'] += 1
+    # if pid == '14869':
+    #     stats['sonderwertung'] += 3
+    # if pid == '12218':
+    #     stats['sonderwertung'] += 2
 
     data = {}
-    data['lpradius1'] = constants.lpradius1
-    data['lpradius2'] = constants.lpradius2
-    data['lpradius3'] = constants.lpradius3
+    # data['lpradius1'] = constants.lpradius1
+    # data['lpradius2'] = constants.lpradius2
+    # data['lpradius3'] = constants.lpradius3
     data['flights'] = []
     for n, f in enumerate(pflights):
         id = f['IDFlight']
@@ -158,12 +204,12 @@ for pid, pflights in flights.items():
         stats['flighttime'] += int(f['FlightDuration'])
         stats['left_turns'] += f['stats']['left_turns']
         stats['right_turns'] += f['stats']['right_turns']
-        if f['stats']['landepunktabstand'] < constants.lpradius1:
-            stats['landepunkt1'] += 1
-        elif f['stats']['landepunktabstand'] < constants.lpradius2:
-            stats['landepunkt2'] += 1
-        elif f['stats']['landepunktabstand'] < constants.lpradius3:
-            stats['landepunkt3'] += 1
+        # if f['stats']['landepunktabstand'] < constants.lpradius1:
+        #     stats['landepunkt1'] += 1
+        # elif f['stats']['landepunktabstand'] < constants.lpradius2:
+        #     stats['landepunkt2'] += 1
+        # elif f['stats']['landepunktabstand'] < constants.lpradius3:
+        #     stats['landepunkt3'] += 1
 
         if f['TakeoffWaypointName'] == "Schauinsland":
             stats['schauiflights'] += 1
@@ -183,6 +229,13 @@ for pid, pflights in flights.items():
         has_fotos = int(f['HasPhotos']) > 0
         if has_fotos:
             stats['fotos'] += 1
+        
+        for k in f['kurbeleien']:
+            if k['other_flight']['FKPilot'] not in (kp['pid'] for kp in stats['kurbelpartner']):
+                stats['kurbelpartner'].append({
+                    'pid': k['other_flight']['FKPilot'],
+                    'name': full_name(k['other_flight']),
+                })
 
         fd = {
           'pid': pid,
@@ -195,10 +248,11 @@ for pid, pflights in flights.items():
           'flugzeit': pretty_duration(f['FlightDuration']),
           'linkskreise': f['stats']['left_turns'],
           'rechtskreise': f['stats']['right_turns'],
-          'landepunktabstand_meter': f['stats']['landepunktabstand'],
-          'landepunktabstand': pretty_landepunktabstand(f['stats']['landepunktabstand']),
+          #'landepunktabstand_meter': f['stats']['landepunktabstand'],
+          #'landepunktabstand': pretty_landepunktabstand(f['stats']['landepunktabstand']),
           'neue_sektoren': " ".join(sorted(list(new))),
           'neue_sektoren_anzahl': len(new),
+          'kurbeleien': f['kurbeleien'],
           'fotos': has_fotos,
           'hike': is_hike,
           'url': f"https://de.dhv-xc.de/flight/{id}",
@@ -281,11 +335,14 @@ total_corr = corr["total"]*100
 # Total stats
 total_stats = {}
 for k in ['schauiflights', 'lindenflights', 'flighttime', 'hikes', 'fotos',
-          'landepunkt1', 'landepunkt2', 'landepunkt3', 'left_turns', 'right_turns',
+          #'landepunkt1', 'landepunkt2', 'landepunkt3',
+          'left_turns', 'right_turns',
           'sonderwertung']:
     total_stats[k] = 0
     for p in pilots:
         total_stats[k] += p['stats'][k]
+# count each kurbeln only once
+total_stats["kurbelpartner"] = sum(len(p['stats']['kurbelpartner']) for p in pilots) / 2
 finalize_stats(total_stats, sektor_pilots)
 total_points = points_of_stats(total_stats)
 

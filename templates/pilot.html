@@ -21,9 +21,19 @@
 <tr><td>Hike and fly</td><td>{{ stats.hikes }}</td><td> {{ points.hikes }}</td></tr>
 <tr><td>Fotos</td><td>{{ stats.fotos }}</td><td> {{ points.fotos }}</td></tr>
 <tr><td>Überflogene Sektoren</td><td>{{ stats.sektoren }}</td><td> {{ points.sektoren }}</td></tr>
+{#
 <tr><td>Landepunkttreffer &lt; {{ lpradius1 }}m</td><td>{{ stats.landepunkt1 }}</td><td> {{ points.landepunkt1 }}</td></tr>
 <tr><td>Landepunkttreffer &lt; {{ lpradius2 }}m</td><td>{{ stats.landepunkt2 }}</td><td> {{ points.landepunkt2 }}</td></tr>
 <tr><td>Landepunkttreffer &lt; {{ lpradius3 }}m</td><td>{{ stats.landepunkt3 }}</td><td> {{ points.landepunkt3 }}</td></tr>
+#}
+<tr><td>Kurbelpartner
+{% if stats.kurbelpartner | length > 0 %}
+<br/>
+{% for k in stats.kurbelpartner %}
+<a href="pilot{{k.pid}}.html">{{ k.name }}</a>{{ ", " if not loop.last else "" }}
+{% endfor %}
+{% endif %}
+</td><td>{{ stats.kurbelpartner | length }}</td><td> {{ points.kurbelpartner }}</td></tr>
 <tr><td>Drehüberschuss {{ stats.drehrichtung}}</td><td>{{ stats.drehueberschuss }}</td><td> {{ points.drehueberschuss }}</td></tr>
 <tr><td>Sonderwertungen</td><td>{{ stats.sonderwertung }}</td><td> {{ points.sonderwertung }}</td></tr>
 </tbody>
@@ -52,8 +62,9 @@
 <th class="text-right">⏱</th>
 <th class="text-right">⟲</th>
 <th class="text-right">⟳</th>
-<th class="text-right">◎</th>
+{# <th class="text-right">◎</th> #}
 <th class="text-right">⌔</th>
+<th class="text-right"></th>
 <th class="text-right"></th>
 <th class="text-right"></th>
 <th><img src="static/dhv-xc.png" /></th>
@@ -67,8 +78,12 @@
 <td class="text-right">{{ f.flugzeit }}</td>
 <td class="text-right">{{ f.linkskreise }}</td>
 <td class="text-right">{{ f.rechtskreise }}</td>
-<td class="text-right">{{ f.landepunktabstand }}</td>
+{# <td class="text-right">{{ f.landepunktabstand }}</td> #}
 <td class="text-right">{{ f.neue_sektoren_anzahl }}</td>
+<td class="text-right">
+{% for k in f.kurbeleien %}
+<span title="{{k.duration}} s mit {{ k.other_flight.FirstName }} {{ k.other_flight.LastName }}">🔄</span>
+{% endfor %}
 <td class="text-center">{% if f.hike %}🥾{% endif %}</td>
 <td class="text-center">{% if f.fotos %}📷{% endif %}</td>
 <td><a href="https://de.dhv-xc.de/flight/{{ f.id }}">🔗</a></td>

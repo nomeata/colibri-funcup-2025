@@ -24,6 +24,6 @@ def parse(f):
             lon = float(lon_deg) + float(lon_min) / 60.0 + float(lon_min_dec) / 1000.0 / 60.0
             if lon_sign == 'W': lon = -lon
 
-            track.append({ 'time': seconds, 'lat': lat, 'lon': lon})
+            track.append({ 'time': seconds, 'lat': lat, 'lon': lon, 'alt': int(gnss_alt)})
     return track
 

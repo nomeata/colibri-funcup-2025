@@ -68,9 +68,10 @@ def write_map(outfile, flights):
     ).add_to(sektoren_layer)
 
     # Draw target
-    target_layer = folium.FeatureGroup(name="Zielscheibe").add_to(m)
-    for r in [lpradius1, lpradius2, lpradius3]:
-        folium.Circle(radius = r, location=constants.landepunkt, color = 'green', fill=True).add_to(target_layer)
+    if False:
+        target_layer = folium.FeatureGroup(name="Zielscheibe").add_to(m)
+        for r in [lpradius1, lpradius2, lpradius3]:
+            folium.Circle(radius = r, location=constants.landepunkt, color = 'green', fill=True).add_to(target_layer)
 
     # Draw tracks
     track_layer = folium.FeatureGroup(name="Tracks").add_to(m)
@@ -78,9 +79,10 @@ def write_map(outfile, flights):
         folium.PolyLine([track], color="crimson").add_to(track_layer)
 
     # Draw Landepunkt
-    landing_layer = folium.FeatureGroup(name="Landepunkte").add_to(m)
-    for lp in lps:
-        folium.Circle(radius = 3, location = lp, color="black", fill=True, fill_opacity = 1, stroke=False).add_to(landing_layer)
+    if False:
+        landing_layer = folium.FeatureGroup(name="Landepunkte").add_to(m)
+        for lp in lps:
+            folium.Circle(radius = 3, location = lp, color="black", fill=True, fill_opacity = 1, stroke=False).add_to(landing_layer)
 
     folium.LayerControl(collapsed = False).add_to(m)
 

@@ -13,7 +13,7 @@ import sektoren
 import landepunkt
 
 parser = argparse.ArgumentParser(description='TODO')
-parser.add_argument('-i', type=str, help='Gzipped IGC file to read', required=True)
+parser.add_argument('-i', type=str, help='Gzipped IGC file to analyzse', required=True)
 args = parser.parse_args()
 
 gunzip = subprocess.Popen(('gunzip',), stdin=open(args.i), stdout=subprocess.PIPE)
@@ -24,7 +24,6 @@ p = landepunkt.landepunkt(track)
 landepunktabstand = landepunkt.landepunktabstand(p)
 turns = kreise.turns(track)
 seen = sektoren.sektoren(track)
-
 
 json.dump({
     'left_turns': turns['left_turns'],
