@@ -6,7 +6,7 @@ set -e
 ./prepare.sh
 ./fetch-flights.sh
 ./fetch-igc.sh
-./flightstats.sh
+./update-flightstats.py
 
 ./sektoren-map.py
 ./website.py

@@ -1,7 +1,7 @@
 name: Build site
 on:
  push:
-   braches:
+   branches:
    - main
  #schedule:
    # * is a special character in YAML so you have to quote this string
@@ -27,20 +27,33 @@ jobs:
         DHV_USERNAME: ${{ secrets.DHV_USERNAME }}
         DHV_PASSWORD: ${{ secrets.DHV_PASSWORD }}
     - run: ./fetch-flights.sh
-    - name: Cache downloads
+    - name: Fetch igc cache
       uses: actions/cache@v3
       with:
         key:  flights-1-${{hashFiles('_tmp/flights.json')}}
         restore-keys:  flights-1-
         path: _flights
     - run: ./fetch-igc.sh
-    - name: Cache stats
+    - name: Upload igc cache
+      uses: actions/cache/save@v3
+      if: always()
+      with:
+        key:  flights-1-${{hashFiles('_tmp/flights.json')}}
+        path: _flights
+    - name: Fetch stats cache
       uses: actions/cache@v3
       with:
         key:  stats-${{hashFiles('*.py')}}-${{hashFiles('_tmp/flights.json')}}
         restore-keys:  stats-${{hashFiles('*.py')}}-
         path: _stats
-    - run: ./flightstats.sh
+    - run: ./update-flightstats.py
+    - name: Upload stats cache
+      uses: actions/cache/save@v3
+      if: always()
+      with:
+        key:  stats-${{hashFiles('*.py')}}-${{hashFiles('_tmp/flights.json')}}
+        path: _stats
+
     - run: ./sektoren-map.py
     - run: ./website.py
 
