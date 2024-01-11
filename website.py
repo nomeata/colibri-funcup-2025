@@ -55,9 +55,6 @@ shutil.copytree('templates/static', '_out/static', dirs_exist_ok=True)
 
 flight_data = json.load(open('_tmp/flights.json'))
 
-# Group flights by id
-flights_by_id = { flight["IDFlight"]: flight for flight in flight_data['data']}
-
 # Group flights by date
 flights_by_date = {}
 for flight in flight_data['data']:
