@@ -55,14 +55,6 @@ shutil.copytree('templates/static', '_out/static', dirs_exist_ok=True)
 
 flight_data = json.load(open('_tmp/flights.json'))
 
-# Group flights by date
-flights_by_date = {}
-for flight in flight_data['data']:
-    date = flight['FlightDate']
-    if date not in flights_by_date:
-        flights_by_date[date] = []
-    flights_by_date[date].append(flight)
-
 flights = {}
 # Group flights by pilot, read stats
 for flight in flight_data['data']:
@@ -75,7 +67,7 @@ for flight in flight_data['data']:
 
     # add kurbeleien
     flight['kurbeleien'] = []
-    for other_flight in flights_by_date[flight['FlightDate']]:
+    for other_flight in flight_data['data']:
         data = kurbeln.load(flight, other_flight)
         if data is not None:
             flight['kurbeleien'].append(data)
