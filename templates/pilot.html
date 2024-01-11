@@ -82,7 +82,9 @@
 <td class="text-right">{{ f.neue_sektoren_anzahl }}</td>
 <td class="text-right">
 {% for k in f.kurbeleien %}
+<a href="pilot{{k.other_flight.FKPilot}}.html">
 <span title="{{k.duration}} s mit {{ k.other_flight.FirstName }} {{ k.other_flight.LastName }}">🔄</span>
+</a>
 {% endfor %}
 <td class="text-center">{% if f.hike %}🥾{% endif %}</td>
 <td class="text-center">{% if f.fotos %}📷{% endif %}</td>
