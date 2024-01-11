@@ -79,26 +79,9 @@ for flight in flight_data['data']:
     # add kurbeleien
     flight['kurbeleien'] = []
     for other_flight in flights_by_date[flight['FlightDate']]:
-        if other_flight['IDFlight'] == id:
-            continue
-        if flight['FlightEndTime'] < other_flight['FlightStartTime']:
-            continue
-        if other_flight['FlightEndTime'] < flight['FlightStartTime']:
-            continue 
-        other_id = other_flight['IDFlight']
-        stats_file1 = f"_stats/{id}-{other_id}.stats.json"
-        if os.path.exists(stats_file1):
-            data = json.load(open(stats_file1))
-            if data is not None:
-                data['other_flight'] = flights_by_id[other_id]
-                flight['kurbeleien'].append(data)
-        stats_file2 = f"_stats/{other_id}-{id}.stats.json"
-        if os.path.exists(stats_file2):
-            data = json.load(open(stats_file2))
-            if data is not None:
-                data = kurbeln.flip_stats(data)
-                data['other_flight'] = flights_by_id[other_id]
-                flight['kurbeleien'].append(data)
+        data = kurbeln.load(flight, other_flight)
+        if data is not None:
+            flight['kurbeleien'].append(data)
 
     if pid not in flights:
         flights[pid] = []

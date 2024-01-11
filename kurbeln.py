@@ -7,6 +7,7 @@ import json
 import argparse
 import igc
 import subprocess
+import os
 
 def add_index(track):
     for i in range(len(track)):
@@ -182,6 +183,32 @@ def flip_stats(stats):
         'lat2': stats['lat1'],
         'lon2': stats['lon1'],
     }
+
+def load(flight1, flight2):
+    id1 = flight1['IDFlight']
+    id2 = flight2['IDFlight']
+    if id1 == id2:
+        return None
+    if flight1['FlightDate'] != flight2['FlightDate']:
+        return None
+    if flight1['FlightEndTime'] < flight2['FlightStartTime']:
+        return None
+    if flight2['FlightEndTime'] < flight1['FlightStartTime']:
+        return None
+    stats_file1 = f"_stats/{id1}-{id2}.stats.json"
+    stats_file2 = f"_stats/{id2}-{id1}.stats.json"
+    if os.path.exists(stats_file1):
+        data = json.load(open(stats_file1))
+        if data is not None:
+            data['other_flight'] = flight2
+            return data
+    elif os.path.exists(stats_file2):
+        data = json.load(open(stats_file2))
+        if data is not None:
+            data = flip_stats(data)
+            data['other_flight'] = flight2
+            return data
+    return None
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='TODO')
