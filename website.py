@@ -332,33 +332,6 @@ env.get_template("index.html") \
   .stream(data) \
   .dump(open(f'_out/index.html', 'w'))
 
-# Write main map
-
-m = folium.Map(
-    location=constants.schaui,
-    zoom_start=12,
-    tiles = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-    maxZoom = 17,
-    attr = 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
-    )
-# Draw sektoren
-folium.features.Choropleth(
- geo_data = "sektoren.json",
- key_on = 'feature.id',
- columns = ['sektor', 'pilots'],
- data = pd.DataFrame({'sektor': sektor_pilots.keys(), 'pilots': sektor_pilots.values()}),
- fill_color = 'Blues',
- nan_fill_opacity = 0.2,
- legend_name = "Piloten, die diesen Sektor erreicht haben",
- overlay = False,
-).add_to(m)
-
-# Draw target
-for r in [constants.lpradius1, constants.lpradius2, constants.lpradius3]:
-    folium.Circle(radius = r, location=constants.landepunkt, color = 'green', fill=True).add_to(m)
-
-m.save("_out/map.html")
-
 # Write Flight data to CSV file
 
 with open('flights.csv', 'w', newline='') as csvfile:
