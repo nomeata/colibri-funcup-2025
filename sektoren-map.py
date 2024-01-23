@@ -109,7 +109,7 @@ def write_map(outfile, flights, all=False, show_tracks=True):
         landing_layer = folium.FeatureGroup(name="Landepunkte").add_to(m)
         for lp in lps:
             folium.Circle(radius = 3, location = lp, color="black", fill=True, fill_opacity = 1, stroke=False).add_to(landing_layer)
-    
+
     # Draw Meetings
     kurbel_layer = folium.FeatureGroup(name="Gekurbel").add_to(m)
     if all and not show_tracks:
@@ -121,8 +121,8 @@ def write_map(outfile, flights, all=False, show_tracks=True):
                 folium.Marker(
                     location = (data['lat2'], data['lon2']),
                     popup=folium.Popup(
-                        html = f"🔄 {flight1['FirstName']} {flight1['LastName']} and " 
-                            f"{flight2['FirstName']} {flight2['LastName']} ({data['duration']} s)", 
+                        html = f"🔄 {flight1['FirstName']} {flight1['LastName']} and "
+                            f"{flight2['FirstName']} {flight2['LastName']} ({data['duration']} s)",
                         parse_html=False),
                     icon=folium.Icon(icon='refresh'),
                 ).add_to(kurbel_layer)
@@ -185,7 +185,8 @@ for pid, pflights in flights.items():
 
     write_map(f"_out/map{pid}.html", pflights)
 
-if not len(sys.argv) > 1:
+if len(sys.argv) == 0 or "map" in sys.argv:
     write_map(f"_out/map.html", all_flights, all= True, show_tracks = False)
+if len(sys.argv) == 0 or "all" in sys.argv:
     write_map(f"_out/map_all.html", all_flights, all = True, show_tracks = True)
 

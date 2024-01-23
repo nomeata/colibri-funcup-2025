@@ -76,21 +76,21 @@ def join_tracks(track1, track2):
     return segments
 
 # Checks that entry i is good
-# * distance less than 200m 
-# * altitude difference less than 20m
-# * directions of travel more than 120° apart
+# * distance less than 250m
+# * altitude difference less than 40m
+# * directions of travel more than 140° apart
 # returns distance or None
 def is_good(i, track1, track2):
     assert(track1 != track2)
     t1 = track1[i]
     t2 = track2[i]
     alt_distance = t1['alt'] - t2['alt']
-    if abs(alt_distance) > 20:
+    if abs(alt_distance) > 40:
         return
     xrel = t1['x'] - t2['x']
     yrel = t1['y'] - t2['y']
     distance = math.sqrt(xrel**2 + yrel**2)
-    if abs(distance) > 200:
+    if abs(distance) > 250:
         return
     if i + 1 < len(track1):
         t1b = track1[i+1]
@@ -101,7 +101,7 @@ def is_good(i, track1, track2):
         dx2 = t2b['x'] - t2['x']
         dy2 = t2b['y'] - t2['y']
         bearing2 = math.degrees(math.atan2(dy2, dx2))
-        if abs((360 + bearing1 - bearing2) % 360 - 180) > 120:
+        if abs((360 + bearing1 - bearing2) % 360 - 180) > 140:
             return
     return distance
 
@@ -123,7 +123,7 @@ def nearby_tracks(segments):
             out_track = []
     return out
 
-# finds longest sequence with distance constant (up to 30m)
+# finds longest sequence with distance constant (up to 40m)
 def longest_constant_distance(segments):
     best = None
     for seg in segments:
@@ -132,14 +132,14 @@ def longest_constant_distance(segments):
             mind = d
             maxd = d
             for j in range(i+1, len(seg)):
-                if j - i > 30 and (not best or j - i > len(best)):
+                if j - i > 60 and (not best or j - i > len(best)):
                     best = seg[i:j]
                 (_, _, d) = seg[j]
                 if d < mind:
                     mind = d
                 if d > maxd:
                     maxd = d
-                if maxd - mind > 30:
+                if maxd - mind > 40:
                     break
     return best
 
@@ -160,8 +160,8 @@ def kurbeln(track1, track2):
         return {
             'index_start1': best[0][0]['index'],
             'index_start2': best[0][1]['index'],
-            'index_end1': best[-1][0]['index'],
-            'index_end2': best[-1][1]['index'],
+            'index_end1': best[-1][0]['index']+1,
+            'index_end2': best[-1][1]['index']+1,
             'duration': best[-1][0]['time'] - best[0][0]['time'],
             'lat1': best[-1][0]['lat'],
             'lon1': best[-1][0]['lon'],
