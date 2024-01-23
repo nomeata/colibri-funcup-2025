@@ -185,8 +185,8 @@ for pid, pflights in flights.items():
 
     write_map(f"_out/map{pid}.html", pflights)
 
-if len(sys.argv) == 0 or "map" in sys.argv:
+if len(sys.argv) == 1 or "map" in sys.argv:
     write_map(f"_out/map.html", all_flights, all= True, show_tracks = False)
-if len(sys.argv) == 0 or "all" in sys.argv:
+if len(sys.argv) == 1 or "all" in sys.argv:
     write_map(f"_out/map_all.html", all_flights, all = True, show_tracks = True)
 
