@@ -50,7 +50,7 @@
 <td class="text-right">{{ p.stats.landepunkt1 }} / {{ p.stats.landepunkt2 }} / {{ p.stats.landepunkt3 }} </td>
 #}
 <td class="text-right">{{ p.stats.sektoren }}</td>
-<td class="text-right">{% if p.stats.kurbelpartner %}{{ p.stats.kurbelpartner | length}}{% endif %}</td>
+<td class="text-right">{% if p.stats.kurbelpartner %}{{ p.stats.kurbelpartner | length}} {% if p.stats.extrakurbelei %} + {{ p.stats.extrakurbelei }}{% endif %}{% endif %}</td>
 <td class="text-right">{% if p.stats.hikes %}{{ p.stats.hikes }}{% endif %}</td>
 <td class="text-right">{% if p.stats.fotos %}{{ p.stats.fotos }}{% endif %}</td>
 <td class="text-right">{% if p.stats.sonderwertung %}{{ p.stats.sonderwertung }}{% endif %}</td>
@@ -87,77 +87,7 @@ Die Programmierung der Seite, erstellt von Joachim Breitner, kann auf <a href="h
 <section>
 <h2>Statistiken</h2>
 
-<p>Im Folgenden ein paar mehr oder weniger sinnvolle Statistiken.</p>
-
-<p>Welche Punktzahl hätten wir, wenn wir alle gemeinsam antreten würden:</p>
-
-<div style="overflow-x:auto">
-<table class="striped">
-<thead>
-<tr>
-<th class="text-right">Schaui</th>
-<th class="text-right">Linden</th>
-<th class="text-right">⏱</th>
-<th class="text-right">⟲</th>
-<th class="text-right">⟳</th>
-{# <th class="text-right">◎</th> #}
-<th class="text-right">⌔</th>
-<th class="text-right">🔄</th>
-<th class="text-right">🥾</th>
-<th class="text-right">📷</th>
-<th class="text-right">⭐</th>
-<th class="text-right">Punkte</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="text-right">{{ total_stats.schauiflights }}</td>
-<td class="text-right">{% if total_stats.lindenflights %}{{ total_stats.lindenflights }}{% endif %}</td>
-<td class="text-right">{{ total_stats.prettyflighttime }}</td>
-<td class="text-right">{{ total_stats.left_turns }}</td>
-<td class="text-right">{{ total_stats.right_turns }}</td>
-{# <td class="text-right">{{ total_stats.landepunkt1 }} / {{ total_stats.landepunkt2 }} / {{ total_stats.landepunkt3 }} </td> #}
-<td class="text-right">{{ total_stats.sektoren }}</td>
-<td class="text-right">{{ total_stats.kurbelpartner }}</td>
-<td class="text-right">{% if total_stats.hikes %}{{ total_stats.hikes }}{% endif %}</td>
-<td class="text-right">{% if total_stats.fotos %}{{ total_stats.fotos }}{% endif %}</td>
-<td class="text-right">{% if total_stats.sonderwertung %}{{ total_stats.sonderwertung }}{% endif %}</td>
-<td class="text-right">{{ total_points.total }}</td>
-</tr>
-</tbody></table>
-</div>
-
-<p>Wie korrelieren die verschiedenen Kategorien mit der Gesamtpunktzahl? (Was das zu bedeuten hat? Wer weiß…)</p>
-
-<div style="overflow-x:auto" class="is-horizontal-align">
-<table class="striped">
-<thead>
-<tr>
-<th class="text-right">Schaui</th>
-<th class="text-right">Linden</th>
-<th class="text-right">⏱</th>
-<th class="text-right">|⟲-⟳|</th>
-{# <th class="text-right">◎</th> #}
-<th class="text-right">⌔</th>
-<th class="text-right">🥾</th>
-<th class="text-right">📷</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="text-right">{{ total_corr.schauiflights | round | int }}%</td>
-<td class="text-right">{{ total_corr.lindenflights | round | int }}%</td>
-<td class="text-right">{{ total_corr.flighttime | round |int }}%</td>
-<td class="text-right">{{ total_corr.drehueberschuss | round |int }}%</td>
-{# <td class="text-right">{{ total_corr.landepunkt1 | round |int }}% / {{ total_corr.landepunkt2 | round |int }}% / {{ total_corr.landepunkt3 | round |int }}% </td> #}
-<td class="text-right">{{ total_corr.sektoren | round |int }}%</td>
-<td class="text-right">{{ total_corr.hikes | round |int }}%</td>
-<td class="text-right">{{ total_corr.fotos | round |int }}%</td>
-</tr>
-</tbody></table>
-</div>
-
-<p>Und wer sind die größten und kleinsten Drehwürmer (ab 100 Kreisen):</p>
+<p>Wer sind die größten und kleinsten Drehwürmer (ab 100 Kreisen):</p>
 
 <div style="overflow-x:auto" class="is-horizontal-align">
 <table class="striped">

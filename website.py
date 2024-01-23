@@ -95,6 +95,7 @@ def finalize_stats(stats, covered):
         stats['drehrichtung'] = "(nach rechts)"
         stats['drehueberschuss'] = stats['right_turns'] - stats['left_turns']
     stats['prettyflighttime'] = pretty_duration(stats['flighttime'])
+    stats['extrakurbelei'] = stats['kurbelei'] - len(stats['kurbelpartner'])
 
 def points_of_stats(stats):
     if type(stats['kurbelpartner']) == list:
@@ -112,6 +113,7 @@ def points_of_stats(stats):
         #'landepunkt2':     stats['landepunkt2']     * 25,
         #'landepunkt3':     stats['landepunkt3']     * 5,
         'kurbelpartner':   kurbelpartner            * 111,
+        'kurbelei':        stats['kurbelei']        * 11,
         'drehueberschuss': stats['drehueberschuss'] * -1,
         'sonderwertung':   stats['sonderwertung']   * 400,
     }
@@ -140,6 +142,7 @@ for pid, pflights in flights.items():
         #'landepunkt2': 0,
         #'landepunkt3': 0,
         'kurbelpartner': list(),
+        'kurbelei': 0,
         'drehrichtung': "",
         'drehueberschuss': 0,
         'left_turns': 0,
@@ -201,8 +204,11 @@ for pid, pflights in flights.items():
         has_fotos = int(f['HasPhotos']) > 0
         if has_fotos:
             stats['fotos'] += 1
-        
+
+        # kurbeleien in diesem flug (einmal pro pilot)
+        stats['kurbelei'] += len(set(k['other_flight']['FKPilot'] for k in f['kurbeleien']))
         for k in f['kurbeleien']:
+            # kurbelpartner
             if k['other_flight']['FKPilot'] not in (kp['pid'] for kp in stats['kurbelpartner']):
                 stats['kurbelpartner'].append({
                     'pid': k['other_flight']['FKPilot'],
@@ -299,34 +305,12 @@ turn_stats = {
     ], key = lambda pair: pair[2]),
 }
 
-
-# Correlations
-corr = pd.DataFrame([ dict(p['points'], rank=-p['rank']) for p in pilots ]).corr()
-total_corr = corr["total"]*100
-
-# Total stats
-total_stats = {}
-for k in ['schauiflights', 'lindenflights', 'flighttime', 'hikes', 'fotos',
-          #'landepunkt1', 'landepunkt2', 'landepunkt3',
-          'left_turns', 'right_turns',
-          'sonderwertung']:
-    total_stats[k] = 0
-    for p in pilots:
-        total_stats[k] += p['stats'][k]
-# count each kurbeln only once
-total_stats["kurbelpartner"] = sum(len(p['stats']['kurbelpartner']) for p in pilots) / 2
-finalize_stats(total_stats, sektor_pilots)
-total_points = points_of_stats(total_stats)
-
 # Write main website
 data = {}
 data['pilots'] = pilots
 data['now'] = now
 data['latest_flight'] = latest_flight
 data['count_flight'] = len(flight_data['data'])
-data['total_stats'] = total_stats
-data['total_points'] = total_points
-data['total_corr'] = total_corr
 data['turn_stats'] = turn_stats
 env.get_template("index.html") \
   .stream(data) \
