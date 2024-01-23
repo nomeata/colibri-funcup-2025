@@ -107,11 +107,11 @@ def points_of_stats(stats):
         'flighttime':      stats['flighttime']      // 60,
         'hikes':           stats['hikes']           * 120,
         'fotos':           stats['fotos']           * 3,
-        'sektoren':        stats['sektoren']        * 42,
+        'sektoren':        stats['sektoren']        * 23,
         #'landepunkt1':     stats['landepunkt1']     * 100,
         #'landepunkt2':     stats['landepunkt2']     * 25,
         #'landepunkt3':     stats['landepunkt3']     * 5,
-        'kurbelpartner':   kurbelpartner            * 100,
+        'kurbelpartner':   kurbelpartner            * 111,
         'drehueberschuss': stats['drehueberschuss'] * -1,
         'sonderwertung':   stats['sonderwertung']   * 400,
     }
