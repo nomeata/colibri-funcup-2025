@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import itertools
 import math
 import constants
 import sys
@@ -8,6 +9,12 @@ import argparse
 import igc
 import subprocess
 import os
+
+MAX_DISTANCE = 250
+CONST_DISTANCE_TOLERANCE = 50
+BEARING_TOLERANCE = 180
+ALT_TOLERANCE = 50
+MIN_SECONDS = 60
 
 def add_index(track):
     for i in range(len(track)):
@@ -27,13 +34,38 @@ def wgs84_to_cartesian(track):
         t['x'] = (lon_rad - lon_schaui_rad) * R * math.cos(lat_schaui_rad)
         t['y'] = (lat_rad - lat_schaui_rad) * R
 
+# find track entries that are two seconds apart and fill them in
+def fix_track(track, verbose):
+    out = []
+    i = 0
+    for i in range(len(track)):
+        out.append(track[i])
+        if i + 1 < len(track) and track[i+1]['time'] == track[i]['time'] + 2:
+            if verbose:
+                print(f"filling gap between {track[i]['time']} and {track[i+1]['time']}")
+            t = track[i]
+            t2 = track[i+1]
+            out.append({
+                'time': t['time'] + 1,
+                'lat': (t['lat'] + t2['lat'])/2,
+                'lon': (t['lon'] + t2['lon'])/2,
+                'alt': (t['alt'] + t2['alt'])/2,
+                'x': (t['x']+t2['y'])/2,
+                'y': (t['y']+t2['y'])/2,
+                'index': t['index'],
+            })
+    return out
+
 # checks that the time field increments by one second for each entry
-def check_track(track):
+def check_track(track, verbose):
     bad = 0
     for i in range(1, len(track)):
         if track[i]['time'] - track[i-1]['time'] != 1:
             bad += 1
-    return bad / len(track) < 0.05
+    ratio = bad / len(track)
+    if verbose:
+        print(f"bad ratio: {ratio*100:.2f}% ({bad}/{len(track)})")
+    return ratio < 0.05
 
 # finds common sequences with time increasing by the second
 def join_tracks(track1, track2):
@@ -75,79 +107,102 @@ def join_tracks(track1, track2):
         segments.append((out_track1, out_track2))
     return segments
 
-# Checks that entry i is good
-# * distance less than 250m
-# * altitude difference less than 40m
-# * directions of travel more than 140° apart
-# returns distance or None
-def is_good(i, track1, track2):
+# adds distance, alt difference and direction of travel
+def segment_data(segment):
+    track1 = segment[0]
+    track2 = segment[1]
     assert(track1 != track2)
-    t1 = track1[i]
-    t2 = track2[i]
-    alt_distance = t1['alt'] - t2['alt']
-    if abs(alt_distance) > 40:
-        return
-    xrel = t1['x'] - t2['x']
-    yrel = t1['y'] - t2['y']
-    distance = math.sqrt(xrel**2 + yrel**2)
-    if abs(distance) > 250:
-        return
-    if i + 1 < len(track1):
-        t1b = track1[i+1]
-        t2b = track2[i+1]
-        dx1 = t1b['x'] - t1['x']
-        dy1 = t1b['y'] - t1['y']
-        bearing1 = math.degrees(math.atan2(dy1, dx1))
-        dx2 = t2b['x'] - t2['x']
-        dy2 = t2b['y'] - t2['y']
-        bearing2 = math.degrees(math.atan2(dy2, dx2))
-        if abs((360 + bearing1 - bearing2) % 360 - 180) > 140:
-            return
-    return distance
+    out = []
+    for i in range(len(track1)):
+        t1 = track1[i]
+        t2 = track2[i]
+        r = { "t1": t1, "t2": t2, }
+
+        r["alt_distance"] = t1['alt'] - t2['alt']
+
+        xrel = t1['x'] - t2['x']
+        yrel = t1['y'] - t2['y']
+        r["distance"] = math.sqrt(xrel**2 + yrel**2)
+
+        if i + 1 < len(track1):
+            t1b = track1[i+1]
+            t2b = track2[i+1]
+            dx1 = t1b['x'] - t1['x']
+            dy1 = t1b['y'] - t1['y']
+            bearing1 = math.degrees(math.atan2(dy1, dx1))
+            dx2 = t2b['x'] - t2['x']
+            dy2 = t2b['y'] - t2['y']
+            bearing2 = math.degrees(math.atan2(dy2, dx2))
+
+            r["bearing"] = abs((360 + bearing1 - bearing2) % 360 - 180)
+        else:
+            r["bearing"] = 0
+        
+        r["good"] = \
+            r["alt_distance"] <= ALT_TOLERANCE and \
+            r["distance"] <= MAX_DISTANCE
+        
+        # r["bearing"] <= BEARING_TOLERANCE
+
+        
+        out.append(r)
+    return out
 
 # splits segments into subsequence that are `is_good`
-def nearby_tracks(segments):
+def nearby_tracks(segments, verbose):
     out = []
-    for (track1, track2) in segments:
-        out_track = []
-        for i in range(len(track1)):
-            distance = is_good(i, track1, track2)
-            if distance:
-                out_track.append((track1[i], track2[i], distance))
-            else:
-                if out_track:
-                    out.append(out_track)
-                    out_track = []
-        if out_track:
-            out.append(out_track)
-            out_track = []
+    for segment in segments:
+        data = segment_data(segment)
+        groups = [ (k, list(s)) for k, s in itertools.groupby(data, lambda x: x["good"])]
+        for k, s in groups:
+            if k: out.append(s)
+        
+        for i in range(1,len(groups)-1):
+            s = groups[i][1]
+            if len(s) < 30 and verbose:
+                print(f"discarding {len(s)} bad entries betwen {len(groups[i-1][1])} and {len(groups[i+1][1])} good entries")
+                for r in s:
+                    print(f'distance: {r["distance"]:.1f} alt_distance: {r["alt_distance"]:.1f} bearing: {r["bearing"]:.1f}')
     return out
 
 # finds longest sequence with distance constant (up to 40m)
-def longest_constant_distance(segments):
+def longest_constant_distance(segments, verbose):
     best = None
     for seg in segments:
         for i in range(len(seg)):
-            (t1, t2, d) = seg[i]
+            r = seg[i]
+            d = r["distance"]
             mind = d
             maxd = d
             for j in range(i+1, len(seg)):
-                if j - i > 60 and (not best or j - i > len(best)):
+                if j - i > MIN_SECONDS and (not best or j - i > len(best)):
                     best = seg[i:j]
-                (_, _, d) = seg[j]
+
+                d = seg[j]["distance"]
                 if d < mind:
                     mind = d
                 if d > maxd:
                     maxd = d
-                if maxd - mind > 40:
+                if maxd - mind > CONST_DISTANCE_TOLERANCE:
+                    if verbose:
+                        print(f"breaking at {i} - {j} with distance {maxd - mind:.1f}")
                     break
+
+                # check that at least 1/4 of tracks shows pilots moving in opposite directions
+                # this distinguishes kurbeln from just flying together
+                if j - i >= MIN_SECONDS:
+                    if 4 * sum(1 for r in seg[i:j] if r["bearing"] < 90) < (j-i):
+                        if verbose:
+                            print(f"breaking at {i} - {j} with not enough opposing bearings")
+                        break
+
     return best
 
 def kurbeln(track1, track2, verbose):
-    if not check_track(track1):
+    if not check_track(track1, verbose):
         if verbose: print("track1 is not valid")
         return None
-    if not check_track(track2):
+    if not check_track(track2, verbose):
         if verbose: print("track2 is not valid")
         return None
 
@@ -155,24 +210,33 @@ def kurbeln(track1, track2, verbose):
     add_index(track2)
     wgs84_to_cartesian(track1)
     wgs84_to_cartesian(track2)
+    track1 = fix_track(track1, verbose)
+    track2 = fix_track(track2, verbose)
+
     segments = join_tracks(track1, track2)
     if verbose:
         print(f"found {len(segments)} common segment of lengths {[len(s[0]) for s in segments]}")
-    segments = nearby_tracks(segments)
+
+    segments = nearby_tracks(segments, verbose)
     if verbose:
         print(f"found {len(segments)} nearby segment of lengths {[len(s) for s in segments]}")
-    best = longest_constant_distance(segments)
+
+    segments = [ s for s in segments if len(s) >= MIN_SECONDS ]
+    if verbose:
+        print(f"found {len(segments)} long enough segment of lengths {[len(s) for s in segments]}")
+
+    best = longest_constant_distance(segments, verbose)
     if best:
         return {
-            'index_start1': best[0][0]['index'],
-            'index_start2': best[0][1]['index'],
-            'index_end1': best[-1][0]['index']+1,
-            'index_end2': best[-1][1]['index']+1,
-            'duration': best[-1][0]['time'] - best[0][0]['time'],
-            'lat1': best[-1][0]['lat'],
-            'lon1': best[-1][0]['lon'],
-            'lat2': best[-1][1]['lat'],
-            'lon2': best[-1][1]['lon'],
+            'index_start1': best[0]["t1"]['index'],
+            'index_start2': best[0]["t2"]['index'],
+            'index_end1': best[-1]["t1"]['index']+1,
+            'index_end2': best[-1]["t2"]['index']+1,
+            'duration': best[-1]["t1"]['time'] - best[0]["t1"]['time'],
+            'lat1': best[-1]["t1"]['lat'],
+            'lon1': best[-1]["t1"]['lon'],
+            'lat2': best[-1]["t2"]['lat'],
+            'lon2': best[-1]["t2"]['lon'],
         }
     else:
         return None
