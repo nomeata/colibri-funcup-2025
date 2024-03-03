@@ -143,10 +143,12 @@ def longest_constant_distance(segments):
                     break
     return best
 
-def kurbeln(track1, track2):
+def kurbeln(track1, track2, verbose):
     if not check_track(track1):
+        if verbose: print("track1 is not valid")
         return None
     if not check_track(track2):
+        if verbose: print("track2 is not valid")
         return None
 
     add_index(track1)
@@ -154,7 +156,11 @@ def kurbeln(track1, track2):
     wgs84_to_cartesian(track1)
     wgs84_to_cartesian(track2)
     segments = join_tracks(track1, track2)
+    if verbose:
+        print(f"found {len(segments)} common segment of lengths {[len(s[0]) for s in segments]}")
     segments = nearby_tracks(segments)
+    if verbose:
+        print(f"found {len(segments)} nearby segment of lengths {[len(s) for s in segments]}")
     best = longest_constant_distance(segments)
     if best:
         return {
@@ -212,6 +218,7 @@ def load(flight1, flight2):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='TODO')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
     parser.add_argument('track1', type=str, help='Gzipped IGC file to analyzse')
     parser.add_argument('track2', type=str, help='Gzipped IGC file to analyzse')
     args = parser.parse_args()
@@ -223,5 +230,5 @@ if __name__ == "__main__":
         gunzip = subprocess.Popen(('gunzip',), stdin=f, stdout=subprocess.PIPE)
         track2 = igc.parse(gunzip.stdout)
 
-    res = kurbeln(track1, track2)
+    res = kurbeln(track1, track2, verbose = args.verbose)
     json.dump(res, sys.stdout, indent=True)
