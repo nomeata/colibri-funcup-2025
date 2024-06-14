@@ -170,7 +170,7 @@ flight_data = json.load(open('_tmp/flights.json'))
 flights = {}
 all_flights = []
 
-for flight in flight_data['data']:
+for flight in flight_data:
     pid = flight['FKPilot']
 
     if pid not in flights:

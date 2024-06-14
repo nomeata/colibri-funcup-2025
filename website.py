@@ -57,7 +57,7 @@ flight_data = json.load(open('_tmp/flights.json'))
 
 flights = {}
 # Group flights by pilot, read stats
-for flight in flight_data['data']:
+for flight in flight_data:
     id = flight['IDFlight']
     pid = flight['FKPilot']
 
@@ -67,7 +67,7 @@ for flight in flight_data['data']:
 
     # add kurbeleien
     flight['kurbeleien'] = []
-    for other_flight in flight_data['data']:
+    for other_flight in flight_data:
         data = kurbeln.load(flight, other_flight)
         if data is not None:
             flight['kurbeleien'].append(data)
@@ -81,8 +81,8 @@ for pid, pflights in flights.items():
     pflights.sort(key = lambda f: f['FlightStartTime'])
 
 # Latest flight
-if flight_data['data']:
-    latest_flight = max([f['FlightStartTime'] for f in flight_data['data']])
+if flight_data:
+    latest_flight = max([f['FlightStartTime'] for f in flight_data])
 else:
     latest_flight = "(noch keinen gesehen)"
 
@@ -264,7 +264,7 @@ for pid, pflights in flights.items():
     data['points'] = points
     data['now'] = now
     data['latest_flight'] = latest_flight
-    data['count_flight'] = len(flight_data['data'])
+    data['count_flight'] = len(flight_data)
     pilottemplate\
       .stream(data) \
       .dump(open(f'_out/pilot{pid}.html', 'w'))
@@ -310,7 +310,7 @@ data = {}
 data['pilots'] = pilots
 data['now'] = now
 data['latest_flight'] = latest_flight
-data['count_flight'] = len(flight_data['data'])
+data['count_flight'] = len(flight_data)
 data['turn_stats'] = turn_stats
 env.get_template("index.html") \
   .stream(data) \

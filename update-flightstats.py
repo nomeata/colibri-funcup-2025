@@ -12,7 +12,7 @@ with open("_tmp/flights.json") as f:
 
 # Group flights by date
 flights_by_date = {}
-for flight in flights_data["data"]:
+for flight in flights_data:
     date = flight["FlightDate"]
     if date not in flights_by_date:
         flights_by_date[date] = []
