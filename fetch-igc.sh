@@ -4,7 +4,7 @@ set -e
 
 mkdir -p _flights
 
-for id in $(jq -r '[]["IDFlight"]' < _tmp/flights.json | sort -n ); do
+for id in $(jq -r '.[]["IDFlight"]' < _tmp/flights.json | sort -n ); do
 
   if [ ! -e "_flights/$id.igc.gz" ]; then
     echo "$id: fetching"
@@ -19,7 +19,7 @@ for id in $(jq -r '[]["IDFlight"]' < _tmp/flights.json | sort -n ); do
 
 done
 
-for id in $(jq -r '[] | select(.CountComments != "0") | .IDFlight' < _tmp/flights.json | sort -n ); do
+for id in $(jq -r '.[] | select(.CountComments != "0") | .IDFlight' < _tmp/flights.json | sort -n ); do
   if [ ! -e "_flights/$id.comments.json" ]; then
     echo "$id: comments"
     wget \

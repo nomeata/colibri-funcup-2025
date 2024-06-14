@@ -5,7 +5,7 @@ set -e
 mkdir -p images
 cd images
 
-for id in $(jq -r 'select(.["HasPhotos"]=="1")|.["IDFlight"]' < ../_tmp/flights.json | sort -n ); do
+for id in $(jq -r '.[]|select(.["HasPhotos"]=="1")|.["IDFlight"]' < ../_tmp/flights.json | sort -n ); do
 
   if [ ! -e "$id.json" ]; then
     echo "$id: fetching"
@@ -17,7 +17,7 @@ for id in $(jq -r 'select(.["HasPhotos"]=="1")|.["IDFlight"]' < ../_tmp/flights.
       -O "$id.json"
   fi
 
-  jq -r '"https://de.dhv-xc.de/photos/"+.["Path"]+"/"+.["FilenameHd"]' < "$id.json" | while read -r url ; do
+  jq -r '.[]|"https://de.dhv-xc.de/photos/"+.["Path"]+"/"+.["FilenameHd"]' < "$id.json" | while read -r url ; do
     wget \
       --no-verbose \
       --load-cookies ../_tmp/cookies.txt \
