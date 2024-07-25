@@ -21,6 +21,5 @@ echo -n "Flights before opt-out: "
 jq 'length' < _tmp/flights.json.tmp
 # pilot opt-out
 jq 'map(select(.FKPilot != "1284" or (.IDFlight|tonumber) <= 1908028))' < _tmp/flights.json.tmp > _tmp/flights.json
-mv _tmp/flights.json.tmp _tmp/flights.json
 echo -n "Flights after opt-out: "
 jq 'length' < _tmp/flights.json
