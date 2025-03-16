@@ -2,4 +2,5 @@ folium
 geographiclib
 jinja2
 pandas
+Shapely ==2.0.1
 pyopenair ==1.1.0
