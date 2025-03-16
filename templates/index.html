@@ -31,6 +31,7 @@
 <th class="text-right">📷</th>
 <th class="text-right">⭐</th>
 <th class="text-right">Punkte</th>
+<th class="text-right">Steigerung</th>
 </tr>
 </thead>
 <tbody>
@@ -51,6 +52,7 @@
 <td class="text-right">{% if p.stats.fotos %}{{ p.stats.fotos }}{% endif %}</td>
 <td class="text-right">{% if p.stats.sonderwertung %}{{ p.stats.sonderwertung }}{% endif %}</td>
 <td class="text-right">{{ p.points.total }}</td>
+<td class="text-right">{% if p.points.relative %}{{ "{:.02f}".format(p.points.relative)|replace(".", ",")}}×{% endif %}</td>
 </tr>
 {% endfor %}
 </tbody></table>

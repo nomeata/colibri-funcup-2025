@@ -52,6 +52,17 @@ except FileExistsError:
     pass
 shutil.copytree('templates/static', '_out/static', dirs_exist_ok=True)
 
+# Last year's points
+old_data = json.load(open('data2024.json'))
+old_points = {}
+for pilot_data in old_data["pilots"]:
+    if pilot_data["stats"]["flighttime"] >= 3600:
+        old_points[pilot_data["pid"]] = pilot_data["points"]["total"]
+
+# Last year's median
+# (TODO)
+
+
 flight_data = json.load(open('_tmp/flights.json'))
 
 flights = {}
@@ -61,7 +72,7 @@ for flight in flight_data:
     pid = flight['FKPilot']
 
     # add stats
-    print(f"Reading stats for {id}")
+    #print(f"Reading stats for {id}")
     flight['stats'] = json.load(open(f'_stats/{id}.stats.json'))
 
     if pid not in flights:
@@ -223,6 +234,13 @@ for pid, pflights in flights.items():
 
     # Calculate points
     points = points_of_stats(stats)
+
+    # Relative points
+    if pid in old_points:
+        points["old"] = old_points[pid]
+        points["relative"] = points["total"] / old_points[pid]
+    else:
+        points["relative"] = None
 
     pilots.append({
         'pid': pid,
