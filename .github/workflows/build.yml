@@ -19,7 +19,7 @@ jobs:
   Build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - run: pip install -r requirements.txt
     - run: ./prepare.sh
       env:
@@ -27,27 +27,27 @@ jobs:
         DHV_PASSWORD: ${{ secrets.DHV_PASSWORD }}
     - run: ./fetch-flights.sh
     - name: Fetch igc cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         key:  flights-1-${{hashFiles('_tmp/flights.json')}}
         restore-keys:  flights-1-
         path: _flights
     - run: ./fetch-igc.sh
     - name: Upload igc cache
-      uses: actions/cache/save@v3
+      uses: actions/cache/save@v4
       if: always()
       with:
         key:  flights-1-${{hashFiles('_tmp/flights.json')}}
         path: _flights
     - name: Fetch stats cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         key:  stats-${{hashFiles('*.py')}}-${{hashFiles('_tmp/flights.json')}}
         restore-keys:  stats-${{hashFiles('*.py')}}-
         path: _stats
     - run: ./update-flightstats.py
     - name: Upload stats cache
-      uses: actions/cache/save@v3
+      uses: actions/cache/save@v4
       if: always()
       with:
         key:  stats-${{hashFiles('*.py')}}-${{hashFiles('_tmp/flights.json')}}
@@ -57,11 +57,11 @@ jobs:
     - run: ./website.py
 
     - name: Setup Pages
-      uses: actions/configure-pages@v2
+      uses: actions/configure-pages@v5
     - name: Upload artifact
-      uses: actions/upload-pages-artifact@v1
+      uses: actions/upload-pages-artifact@v3
       with:
         path: '_out'
     - name: Deploy to GitHub Pages
       id: deployment
-      uses: actions/deploy-pages@v1
+      uses: actions/deploy-pages@v4
