@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - run: sudo apt install libgeos-dev
     - run: pip install -r requirements.txt
     # looks like older Shapely does not build, newer as used by nix
     # not compatible with pyopenair's metadata, but seems to work
