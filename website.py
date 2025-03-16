@@ -318,6 +318,10 @@ env.get_template("index.html") \
   .stream(data) \
   .dump(open(f'_out/index.html', 'w'))
 
+# Write main data as CSV
+with open('_out/data.json', 'w', encoding='utf-8') as f:
+    json.dump(data, f, ensure_ascii=False, indent=4)
+
 # Write Flight data to CSV file
 
 with open('flights.csv', 'w', newline='') as csvfile:
