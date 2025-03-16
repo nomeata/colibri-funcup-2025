@@ -12,7 +12,6 @@ import os
 
 import constants
 from constants import *
-import kurbeln
 import sektoren
 import landepunkt
 
@@ -109,53 +108,6 @@ def write_map(outfile, flights, all=False, show_tracks=True):
         landing_layer = folium.FeatureGroup(name="Landepunkte").add_to(m)
         for lp in lps:
             folium.Circle(radius = 3, location = lp, color="black", fill=True, fill_opacity = 1, stroke=False).add_to(landing_layer)
-
-    # Draw Meetings
-    kurbel_layer = folium.FeatureGroup(name="Gekurbel").add_to(m)
-    if all and not show_tracks:
-        for flight1, flight2 in combinations(flights, 2):
-            data = kurbeln.load(flight1, flight2)
-            if data:
-                id1 = flight1['IDFlight']
-                id2 = flight2['IDFlight']
-                folium.Marker(
-                    location = (data['lat2'], data['lon2']),
-                    popup=folium.Popup(
-                        html = f"🔄 {flight1['FirstName']} {flight1['LastName']} and "
-                            f"{flight2['FirstName']} {flight2['LastName']} ({data['duration']} s)",
-                        parse_html=False),
-                    icon=folium.Icon(icon='refresh'),
-                ).add_to(kurbel_layer)
-
-                gunzip = subprocess.Popen(('gunzip',), stdin=open(f'_flights/{id1}.igc.gz'), stdout=subprocess.PIPE)
-                track1 = igc.parse(gunzip.stdout)
-                track1 = track1[data['index_start1']:data['index_end1']]
-                track1 = [(round(p['lat'],5), round(p['lon'],5)) for p in track1 ]
-                folium.PolyLine([track1], color="crimson").add_to(kurbel_layer)
-
-                gunzip = subprocess.Popen(('gunzip',), stdin=open(f'_flights/{id2}.igc.gz'), stdout=subprocess.PIPE)
-                track2 = igc.parse(gunzip.stdout)
-                track2 = track2[data['index_start2']:data['index_end2']]
-                track2 = [(round(p['lat'],5), round(p['lon'],5)) for p in track2 ]
-                folium.PolyLine([track2], color="blue").add_to(kurbel_layer)
-    if not all:
-        for flight in flights:
-            for other_flight in all_flights:
-                data = kurbeln.load(flight, other_flight)
-                if data:
-                    other_id = other_flight['IDFlight']
-                    folium.Marker(
-                        location = (data['lat2'], data['lon2']),
-                        popup=folium.Popup(
-                            html = f"🔄 {other_flight['FirstName']} {other_flight['LastName']} ({data['duration']} s)",
-                            parse_html=False),
-                        icon=folium.Icon(icon='refresh'),
-                    ).add_to(kurbel_layer)
-                    gunzip = subprocess.Popen(('gunzip',), stdin=open(f'_flights/{other_id}.igc.gz'), stdout=subprocess.PIPE)
-                    track = igc.parse(gunzip.stdout)
-                    track = track[data['index_start2']:data['index_end2']]
-                    track = [(round(p['lat'],5), round(p['lon'],5)) for p in track ]
-                    folium.PolyLine([track], color="blue").add_to(kurbel_layer)
 
     if not all: # does not work well with Choropleth
         folium.LayerControl(collapsed = False).add_to(m)
