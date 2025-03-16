@@ -6,3 +6,5 @@ _out
 _stats
 _tmp
 __pycache__
+flights.csv
+sektoren-airspace.txt
