@@ -21,6 +21,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - run: pip install -r requirements.txt
+    # looks like older Shapely does not build, newer as used by nix
+    # not compatible with pyopenair's metadata, but seems to work
+    - run: pip install --no-deps pyopenair==1.1.0
     - run: ./prepare.sh
       env:
         DHV_USERNAME: ${{ secrets.DHV_USERNAME }}
