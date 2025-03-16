@@ -1,10 +1,11 @@
 import re
 
-r = re.compile('^B' + '(\d\d)(\d\d)(\d\d)'
-        + '(\d\d)(\d\d)(\d\d\d)([NS])'
-        + '(\d\d\d)(\d\d)(\d\d\d)([EW])'
-        + '([AV])' + '([-\d]\d\d\d\d)' + '([-\d]\d\d\d\d)'
-        + '([0-9a-zA-Z\-]*).*$')
+r = re.compile( r'^B'
+        + r'(\d\d)(\d\d)(\d\d)'
+        + r'(\d\d)(\d\d)(\d\d\d)([NS])'
+        + r'(\d\d\d)(\d\d)(\d\d\d)([EW])'
+        + r'([AV])' + r'([-\d]\d\d\d\d)' + r'([-\d]\d\d\d\d)'
+        + r'([0-9a-zA-Z\-]*).*$')
 def parse(f):
     track = []
     for line in f:
