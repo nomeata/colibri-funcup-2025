@@ -3,7 +3,7 @@
 set -e
 
 limit=2000
-year=2024
+year=2025
 
 echo "flights.json: fetching"
 for s in 0 500 1000 1500 2000
@@ -20,6 +20,7 @@ jq -s 'map (.data) | flatten' _tmp/flights-{0,500,1000,1500,2000}.json.tmp > _tm
 echo -n "Flights before opt-out: "
 jq 'length' < _tmp/flights.json.tmp
 # pilot opt-out
-jq 'map(select(.FKPilot != "1284" or (.IDFlight|tonumber) <= 1908028))' < _tmp/flights.json.tmp > _tmp/flights.json
+# jq 'map(select(.FKPilot != "1284" or (.IDFlight|tonumber) <= 1908028))' < _tmp/flights.json.tmp > _tmp/flights.json
+cat < _tmp/flights.json.tmp > _tmp/flights.json
 echo -n "Flights after opt-out: "
 jq 'length' < _tmp/flights.json
