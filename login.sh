@@ -37,6 +37,6 @@ wget \
   --keep-session-cookies \
   --post-data "uid=$DHV_USERNAME&pwd=$DHV_PASSWORD&dhvfetch=0&stay=0" \
   --header "X-Csrf-Token: $token" \
-  -O /dev/null \
+  -O _tmp/login.json \
   https://de.dhv-xc.de/api/xc/login/login
-echo
+cat _tmp/login.json
