@@ -267,6 +267,15 @@ pilots.sort(key = lambda p: - p['points']['total'])
 for i, p in enumerate(pilots):
     p['rank'] = i + 1
 
+pilots_new = [ p.copy() for p in pilots if p['points']["relative"] is None ]
+for i, p in enumerate(pilots_new):
+    p['rank'] = i + 1
+
+pilots_rel = [ p.copy() for p in pilots if p['points']["relative"] is not None ]
+pilots_rel.sort(key = lambda p: - p['points']['relative'])
+for i, p in enumerate(pilots_rel):
+    p['rank'] = i + 1
+
 # Turn statistics
 turn_stats = {
   'least_rel_diff': min(
@@ -300,6 +309,8 @@ turn_stats = {
 # Write main website
 data = {}
 data['pilots'] = pilots
+data['pilots_new'] = pilots_new
+data['pilots_rel'] = pilots_rel
 data['now'] = now
 data['latest_flight'] = latest_flight
 data['count_flight'] = len(flight_data)
