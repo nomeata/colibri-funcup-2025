@@ -3,6 +3,7 @@ on:
  push:
    branches:
    - master
+ workflow_dispatch:
  schedule:
  - cron: '23 12,16,18,20,22 * * *'
 
