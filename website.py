@@ -69,7 +69,7 @@ flights = {}
 # Group flights by pilot, read stats
 for flight in flight_data:
     id = flight['IDFlight']
-    pid = flight['FKPilot']
+    pid = str(flight['FKPilot'])
 
     # add stats
     #print(f"Reading stats for {id}")
@@ -193,7 +193,7 @@ for pid, pflights in flights.items():
         if f['TakeoffWaypointName'] == "Schauinsland" and int(f['CountComments']) > 0:
             comments = json.load(open(f'_flights/{id}.comments.json'))
             for c in comments['data']:
-                if c['FKAuthor'] == pid and bool(hike_and_fly_re.search(c["CommentText"])):
+                if str(c['FKAuthor']) == pid and bool(hike_and_fly_re.search(c["CommentText"])):
                     is_hike = True
 
         if is_hike:
