@@ -152,6 +152,8 @@ for pid, pflights in flights.items():
     #     stats['sonderwertung'] += 2
     # if pid == '771':
     #     stats['sonderwertung'] += 1
+    if pid == '14475':
+      stats['sonderwertung'] += 1  
 
     data = {}
     # data['lpradius1'] = constants.lpradius1
