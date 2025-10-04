@@ -154,7 +154,7 @@ for pid, pflights in flights.items():
     #     stats['sonderwertung'] += 1
     if pid == '14475':
       stats['sonderwertung'] += 1  
-    if pid == '14475':
+    if pid == '14679':
       stats['sonderwertung'] += 1  
 
     data = {}
